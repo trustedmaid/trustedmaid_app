@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               child: const Text(
-                'Profile',
+                'More',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -52,6 +52,42 @@ class ProfileScreen extends StatelessWidget {
                         builder: (_) => const InAppWebViewScreen(
                           title: 'Trust & Verification',
                           url: 'https://www.trustedmaid.in/verification-process',
+                        ),
+                      ),
+                    );
+                  }),
+                  _buildDivider(),
+                  _buildMenuItem(Icons.question_answer_rounded, 'FAQ', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const InAppWebViewScreen(
+                          title: 'FAQ',
+                          url: 'https://www.trustedmaid.in/faq/',
+                        ),
+                      ),
+                    );
+                  }),
+                  _buildDivider(),
+                  _buildMenuItem(Icons.article_rounded, 'Blogs & Articles', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const InAppWebViewScreen(
+                          title: 'Blogs & Articles',
+                          url: 'https://www.trustedmaid.in/blogs',
+                        ),
+                      ),
+                    );
+                  }),
+                  _buildDivider(),
+                  _buildMenuItem(Icons.info_outline_rounded, 'About Us', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const InAppWebViewScreen(
+                          title: 'About Us',
+                          url: 'https://www.trustedmaid.in/about',
                         ),
                       ),
                     );

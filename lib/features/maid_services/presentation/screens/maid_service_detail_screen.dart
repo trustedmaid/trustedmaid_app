@@ -19,6 +19,27 @@ class MaidServiceDetailScreen extends StatefulWidget {
 class _MaidServiceDetailScreenState extends State<MaidServiceDetailScreen> {
   bool _showFullDesc = false;
   int _openFAQIndex = -1;
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTop = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      final show = _scrollController.offset > 300;
+      if (show != _showScrollToTop) {
+        setState(() {
+          _showScrollToTop = show;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   // Hardcoded services structure mapped to prototype details
   final List<Map<String, dynamic>> _detailServices = [
@@ -129,6 +150,7 @@ class _MaidServiceDetailScreenState extends State<MaidServiceDetailScreen> {
         children: [
           Expanded(
             child: SingleChildScrollView(
+              controller: _scrollController,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -437,6 +459,46 @@ class _MaidServiceDetailScreenState extends State<MaidServiceDetailScreen> {
           ),
         ],
       ),
+      floatingActionButton: _showScrollToTop
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 68),
+              child: GestureDetector(
+                onTap: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        // ignore: deprecated_member_use
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(
+                      // ignore: deprecated_member_use
+                      color: AppColors.line.withOpacity(0.5),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_upward_rounded,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                ),
+              ),
+            )
+          : null,
     );
   }
 
