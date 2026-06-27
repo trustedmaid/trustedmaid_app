@@ -20,7 +20,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     HomeScreen(),
     MaidServicesScreen(),
     // BookingsListScreen(),
-    ProfileScreen(),
+    SupportScreen(),
   ];
 
   final List<CustomBottomNavBarItem> _navItems = const [
@@ -40,9 +40,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     //   label: 'Bookings',
     // ),
     CustomBottomNavBarItem(
-      icon: Icons.more_horiz_rounded,
-      activeIcon: Icons.more_horiz_rounded,
-      label: 'More',
+      icon: Icons.headset_mic_outlined,
+      activeIcon: Icons.headset_mic_rounded,
+      label: 'Support',
     ),
   ];
 

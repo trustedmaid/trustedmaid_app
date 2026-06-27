@@ -24,7 +24,9 @@ class MockAssetBundle extends CachingAssetBundle {
 
   @override
   Future<ByteData> load(String key) async {
-    if (key == 'assets/logo/trusted-maid.png') {
+    if (key == 'assets/logo/trusted-maid.png' ||
+        key == 'assets/images/d.png' ||
+        key == 'assets/images/splash_screen.png') {
       return ByteData.sublistView(transparentPng);
     }
     if (key == 'AssetManifest.bin') {
@@ -52,9 +54,8 @@ void main() {
       ),
     );
 
-    // Verify that our splash screen text starts.
-    expect(find.text('TrustedMaid'), findsOneWidget);
-    expect(find.text('Get Started'), findsOneWidget);
+    // Verify that our splash screen cover image is shown.
+    expect(find.byType(Image), findsOneWidget);
   });
 }
 

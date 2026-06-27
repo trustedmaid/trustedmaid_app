@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/presentation/widgets/staggered_column.dart';
 import '../../../../resources/app_colors.dart';
 import '../../../../utils/extensions.dart';
 import 'locality_search_screen.dart';
@@ -151,7 +152,7 @@ class _MaidServiceDetailScreenState extends State<MaidServiceDetailScreen> {
           Expanded(
             child: SingleChildScrollView(
               controller: _scrollController,
-              child: Column(
+              child: StaggeredColumn(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Hero Area with Background Image & Gradient overlay

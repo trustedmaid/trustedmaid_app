@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'core/di/injection_container.dart' as di;
+import 'package:flutter/services.dart';
+
 import 'config/theme/app_theme.dart';
+import 'core/di/injection_container.dart' as di;
 import 'features/splash/presentation/screens/splash_screen.dart';
 
 void main() async {
@@ -9,6 +11,12 @@ void main() async {
 
   // Initialize dependency injection
   await di.init();
+
+  // Force portrait mode only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   runApp(const MyApp());
 }
@@ -19,11 +27,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Trusted Maid - Domestic Help Services',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system, // Dynamically adapts to device brightness settings
+      themeMode:
+          ThemeMode.system, // Dynamically adapts to device brightness settings
       home: const SplashScreen(),
     );
   }

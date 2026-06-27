@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/presentation/widgets/fade_in_slide.dart';
+import '../../../../core/presentation/widgets/staggered_column.dart';
 import '../../../../resources/app_colors.dart';
 import '../../../maid_services/presentation/screens/maid_service_detail_screen.dart';
 import '../../../maid_services/presentation/screens/maid_services_screen.dart';
@@ -211,343 +213,91 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: SingleChildScrollView(
         controller: _scrollController,
-        child: Column(
+        child: StaggeredColumn(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Premium Mobile Header Area
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
+            Container(
+              color: const Color(0xFFFCF8F2),
+              child: SafeArea(
+                bottom: false,
+                child: Image.asset(
+                  'assets/images/header_banner.png',
                   width: double.infinity,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFF070B19), // Extra Deep Navy
-                        Color(0xFF0F172A), // Deep Slate Navy
-                        Color(0xFF1E3A8A), // Rich Royal Blue
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(32),
-                      bottomRight: Radius.circular(32),
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(32),
-                      bottomRight: Radius.circular(32),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Glowing background visual elements for premium aesthetic
-                        Positioned(
-                          right: -80,
-                          top: -80,
-                          child: Container(
-                            width: 240,
-                            height: 240,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              // ignore: deprecated_member_use
-                              color: const Color(0xFF2563EB).withOpacity(0.18),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: -50,
-                          bottom: -50,
-                          child: Container(
-                            width: 160,
-                            height: 160,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              // ignore: deprecated_member_use
-                              color: const Color(0xFF60A5FA).withOpacity(0.10),
-                            ),
-                          ),
-                        ),
-
-                        // Content Padding
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 50, 20, 36),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Sparkle Badge
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  // ignore: deprecated_member_use
-                                  color: Colors.white.withOpacity(0.06),
-                                  borderRadius: BorderRadius.circular(30),
-                                  // ignore: deprecated_member_use
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.1),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Image.asset(
-                                      'assets/icons/sec-title-shape-1-1.png',
-                                      height: 10,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      'RELIABLE DOMESTIC HELP AT YOUR DOORSTEP',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 8.5,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.8,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 14),
-
-                              // Website Inspired Headline
-                              RichText(
-                                text: const TextSpan(
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.25,
-                                  ),
-                                  children: [
-                                    TextSpan(text: 'Verified '),
-                                    TextSpan(
-                                      text: 'Maid Services',
-                                      style: TextStyle(
-                                        color: Color(0xFF60A5FA),
-                                      ),
-                                    ),
-                                    TextSpan(text: ' in Mumbai'),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-
-                              // Website Subtitle
-                              const Text(
-                                'Background-verified maids, cooks, nannies & caregivers — placed within 24–48 hours.',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
-                                  height: 1.45,
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-
-                              // Trust Badges Row (Inspired by stars & stats on website)
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildHeroTrustBadge(
-                                      Icons.star_rounded,
-                                      const Color(0xFFFBBF24),
-                                      '4.6/5 Rated',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _buildHeroTrustBadge(
-                                      Icons.people_alt_rounded,
-                                      const Color(0xFF34D399),
-                                      '1.1k Placed',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _buildHeroTrustBadge(
-                                      Icons.verified_user_rounded,
-                                      const Color(0xFF60A5FA),
-                                      '100% Verified',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  fit: BoxFit.fitWidth,
                 ),
-              ],
+              ),
             ),
 
             // Overlapping Search Bar
-            Transform.translate(
-              offset: const Offset(0, -18),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            const Scaffold(body: MaidServicesScreen()),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const Scaffold(body: MaidServicesScreen()),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        // ignore: deprecated_member_use
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
                       ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          // ignore: deprecated_member_use
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.search_rounded,
-                          color: AppColors.darkTextSecondary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Search maid, cook, nanny, caregiver...',
-                            style: TextStyle(
-                              color: AppColors.darkTextSecondary.withOpacity(
-                                0.7,
-                              ),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.search_rounded,
+                        color: AppColors.darkTextSecondary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Search maid, cook, nanny, caregiver...',
+                          style: TextStyle(
+                            color: AppColors.darkTextSecondary.withOpacity(0.7),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Container(
-                          width: 34,
-                          height: 34,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [AppColors.primary, AppColors.secondary],
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                            size: 16,
+                      ),
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [AppColors.primary, AppColors.secondary],
                           ),
                         ),
-                      ],
-                    ),
+                        child: const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
 
             // Booking urgent banner
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const Scaffold(body: MaidServicesScreen()),
-                  ),
-                );
-              },
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(8, 0, 18, 8),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF1E3A8A), // Royal Blue
-                      Color(0xFF0F172A), // Dark Slate Navy
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.08)),
-                  boxShadow: [
-                    BoxShadow(
-                      // ignore: deprecated_member_use
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        // ignore: deprecated_member_use
-                        color: Colors.amber.withOpacity(0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.bolt_rounded,
-                        color: Colors.amber,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Need help urgently?',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 3),
-                          Text(
-                            'Get matched with a verified pro in 24–48 hrs',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 11.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                      ),
-                      child: const Icon(
-                        Icons.chevron_right_rounded,
-                        color: Color(0xFF0F172A),
-                        size: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
             // Services Grid Title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -555,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Our Services',
+                    'What do you want?',
                     style: TextStyle(
                       color: AppColors.secondary,
                       fontSize: 16,
@@ -602,89 +352,92 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: List.generate(_services.length, (index) {
                       final item = _services[index];
 
-                      return SizedBox(
-                        width: itemWidth,
-                        child: GestureDetector(
-                          onTap: () {
-                            final navigator = Navigator.of(context);
-                            // Smooth navigation delay to show selection highlight
-                            Future.delayed(
-                              const Duration(milliseconds: 150),
-                              () {
-                                navigator.push(
-                                  MaterialPageRoute(
-                                    builder: (_) => MaidServiceDetailScreen(
-                                      serviceIndex: item['index'] as int,
+                      return FadeInSlide(
+                        delay: Duration(milliseconds: 80 * index),
+                        child: SizedBox(
+                          width: itemWidth,
+                          child: GestureDetector(
+                            onTap: () {
+                              final navigator = Navigator.of(context);
+                              // Smooth navigation delay to show selection highlight
+                              Future.delayed(
+                                const Duration(milliseconds: 150),
+                                () {
+                                  navigator.push(
+                                    MaterialPageRoute(
+                                      builder: (_) => MaidServiceDetailScreen(
+                                        serviceIndex: item['index'] as int,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: AppColors.line,
+                                  width: 1.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    // ignore: deprecated_member_use
+                                    color: Colors.black.withOpacity(0.04),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // Top cover image
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(23),
+                                      topRight: Radius.circular(23),
+                                    ),
+                                    child: Image.asset(
+                                      item['image'] as String,
+                                      height: itemWidth * 0.65,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
-                                );
-                              },
-                            );
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: AppColors.line,
-                                width: 1.0,
+                                  // Content body
+                                  Padding(
+                                    padding: const EdgeInsets.all(14),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item['title'] as String,
+                                          style: const TextStyle(
+                                            color: AppColors.secondary,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        // Description
+                                        Text(
+                                          item['desc'] as String,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.darkTextSecondary,
+                                            height: 1.35,
+                                          ),
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  // ignore: deprecated_member_use
-                                  color: Colors.black.withOpacity(0.04),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                // Top cover image
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(23),
-                                    topRight: Radius.circular(23),
-                                  ),
-                                  child: Image.asset(
-                                    item['image'] as String,
-                                    height: itemWidth * 0.65,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                // Content body
-                                Padding(
-                                  padding: const EdgeInsets.all(14),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['title'] as String,
-                                        style: const TextStyle(
-                                          color: AppColors.secondary,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      // Description
-                                      Text(
-                                        item['desc'] as String,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.darkTextSecondary,
-                                          height: 1.35,
-                                        ),
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ),
                           ),
                         ),
@@ -787,11 +540,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           index,
                         ) {
                           final pair = _problemSolutionPairs[index];
-                          return SizedBox(
-                            width: itemWidth,
-                            child: _buildComparisonCard(
-                              pair['problem']!,
-                              pair['solution']!,
+                          return FadeInSlide(
+                            delay: Duration(milliseconds: 100 * index),
+                            child: SizedBox(
+                              width: itemWidth,
+                              child: _buildComparisonCard(
+                                pair['problem']!,
+                                pair['solution']!,
+                              ),
                             ),
                           );
                         }),
@@ -886,22 +642,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: List.generate(steps.length, (idx) {
                             final s = steps[idx];
                             return Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  right: idx == steps.length - 1 ? 0 : spacing,
-                                ),
-                                child: _buildStepCard(
-                                  s['step'] as String,
-                                  s['icon'] as IconData,
-                                  s['title'] as String,
-                                  s['desc'] as String,
+                              child: FadeInSlide(
+                                delay: Duration(milliseconds: 100 * idx),
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                    right: idx == steps.length - 1
+                                        ? 0
+                                        : spacing,
+                                  ),
+                                  child: _buildStepCard(
+                                    s['step'] as String,
+                                    s['icon'] as IconData,
+                                    s['title'] as String,
+                                    s['desc'] as String,
+                                  ),
                                 ),
                               ),
                             );
                           }),
                         );
                       } else {
-                        return Column(
+                        return StaggeredColumn(
                           children: steps.map((s) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 20),
@@ -970,7 +731,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: Column(
+                    child: StaggeredColumn(
                       children: [
                         // Header Row
                         _buildComparisonRow(
@@ -1031,7 +792,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: Column(
+                              child: StaggeredColumn(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   _buildFactBlock(
@@ -1051,7 +812,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(width: 32),
                             Expanded(
-                              child: Column(
+                              child: StaggeredColumn(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   _buildFactBlock(
@@ -1073,7 +834,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       } else {
                         // Stacked layout for mobile screens
-                        return Column(
+                        return StaggeredColumn(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildFactBlock(
@@ -1990,37 +1751,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeroTrustBadge(IconData icon, Color color, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-      decoration: BoxDecoration(
-        // ignore: deprecated_member_use
-        color: Colors.white.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(12),
-        // ignore: deprecated_member_use
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 13),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
           ),
         ],
       ),
