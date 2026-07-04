@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:dio/dio.dart';
 import '../../../../core/network/dio_client.dart';
 import '../models/location_model.dart';
 import '../models/maid_service_model.dart';
@@ -21,6 +23,43 @@ abstract class MaidServiceRemoteDataSource {
     required String workingHours,
     required String shiftType,
     required String message,
+  });
+
+  /// Register a new agent.
+  Future<void> registerAgent({
+    required String companyName,
+    required String fullName,
+    required String phone,
+    required String email,
+    required String address,
+    required String agentType,
+    required String experienceYears,
+    required String helpersCount,
+    required List<String> servicesProvided,
+  });
+
+  /// Register a new maid.
+  Future<void> registerMaid({
+    required String fullName,
+    required String gender,
+    required String age,
+    required String phone,
+    required String alternatePhone,
+    required String email,
+    required String dob,
+    required String maritalStatus,
+    required String religion,
+    required String? agentId,
+    required int? currentLocationId,
+    required List<int> preferredLocationIds,
+    required String expectedSalary,
+    required String workingHours,
+    required List<String> languages,
+    required bool aadhaarVerified,
+    required bool policeVerified,
+    required String? photoPath,
+    required String? aadhaarPath,
+    required List<Map<String, dynamic>> services,
   });
 }
 
@@ -56,6 +95,106 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
           'shift_type': shiftType,
           'message': message,
         },
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> registerAgent({
+    required String companyName,
+    required String fullName,
+    required String phone,
+    required String email,
+    required String address,
+    required String agentType,
+    required String experienceYears,
+    required String helpersCount,
+    required List<String> servicesProvided,
+  }) async {
+    try {
+      await client.post(
+        'https://www.trustedmaid.in/api/public/agents',
+        data: {
+          'company_name': companyName,
+          'full_name': fullName,
+          'phone': phone,
+          'email': email,
+          'address': address,
+          'agent_type': agentType,
+          'notes': 'Experience: $experienceYears years. Helpers count: $helpersCount. Services provided: ${servicesProvided.join(', ')}',
+        },
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> registerMaid({
+    required String fullName,
+    required String gender,
+    required String age,
+    required String phone,
+    required String alternatePhone,
+    required String email,
+    required String dob,
+    required String maritalStatus,
+    required String religion,
+    required String? agentId,
+    required int? currentLocationId,
+    required List<int> preferredLocationIds,
+    required String expectedSalary,
+    required String workingHours,
+    required List<String> languages,
+    required bool aadhaarVerified,
+    required bool policeVerified,
+    required String? photoPath,
+    required String? aadhaarPath,
+    required List<Map<String, dynamic>> services,
+  }) async {
+    try {
+      final Map<String, dynamic> formDataMap = {
+        'fullName': fullName,
+        'phone': phone,
+        'alternatePhone': alternatePhone.isEmpty ? null : alternatePhone,
+        'email': email.isEmpty ? null : email,
+        'maritalStatus': maritalStatus,
+        'gender': gender,
+        'age': age,
+        'current_location_id': currentLocationId,
+        'salary': expectedSalary,
+        'languages': languages.join(', '),
+        'working_hours': workingHours,
+        'religion': religion,
+        'selectedServices': jsonEncode(services.map((s) => {
+          'id': s['id'],
+          'name': s['name'],
+          'experience': s['experience'],
+        }).toList()),
+        'preferred_location_ids': jsonEncode(preferredLocationIds),
+      };
+
+      if (photoPath != null && photoPath.isNotEmpty) {
+        formDataMap['photo'] = await MultipartFile.fromFile(
+          photoPath,
+          filename: photoPath.split('/').last,
+        );
+      }
+
+      if (aadhaarPath != null && aadhaarPath.isNotEmpty) {
+        formDataMap['aadharCard'] = await MultipartFile.fromFile(
+          aadhaarPath,
+          filename: aadhaarPath.split('/').last,
+        );
+      }
+
+      final formData = FormData.fromMap(formDataMap);
+
+      await client.post(
+        'https://www.trustedmaid.in/api/maids',
+        data: formData,
       );
     } catch (e) {
       rethrow;

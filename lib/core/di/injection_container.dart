@@ -7,6 +7,8 @@ import '../../features/maid_services/domain/repositories/maid_service_repository
 import '../../features/maid_services/domain/usecases/get_maid_services_usecase.dart';
 import '../../features/maid_services/domain/usecases/search_locations_usecase.dart';
 import '../../features/maid_services/domain/usecases/submit_enquiry_usecase.dart';
+import '../../features/maid_services/domain/usecases/register_agent_usecase.dart';
+import '../../features/maid_services/domain/usecases/register_maid_usecase.dart';
 import '../../features/maid_services/presentation/bloc/location_search_bloc.dart';
 import '../../features/maid_services/presentation/bloc/maid_service_bloc.dart';
 
@@ -34,6 +36,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetMaidServicesUseCase(sl()));
   sl.registerLazySingleton(() => SearchLocationsUseCase(sl()));
   sl.registerLazySingleton(() => SubmitEnquiryUseCase(sl()));
+  sl.registerLazySingleton(() => RegisterAgentUseCase(sl()));
+  sl.registerLazySingleton(() => RegisterMaidUseCase(sl()));
 
   // Repositories
   sl.registerLazySingleton<MaidServiceRepository>(

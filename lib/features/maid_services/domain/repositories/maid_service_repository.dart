@@ -23,5 +23,42 @@ abstract class MaidServiceRepository {
     required String shiftType,
     required String message,
   });
+
+  /// Registers a new agent.
+  Future<Either<Failure, void>> registerAgent({
+    required String companyName,
+    required String fullName,
+    required String phone,
+    required String email,
+    required String address,
+    required String agentType,
+    required String experienceYears,
+    required String helpersCount,
+    required List<String> servicesProvided,
+  });
+
+  /// Registers a new maid.
+  Future<Either<Failure, void>> registerMaid({
+    required String fullName,
+    required String gender,
+    required String age,
+    required String phone,
+    required String alternatePhone,
+    required String email,
+    required String dob,
+    required String maritalStatus,
+    required String religion,
+    required String? agentId,
+    required int? currentLocationId,
+    required List<int> preferredLocationIds,
+    required String expectedSalary,
+    required String workingHours,
+    required List<String> languages,
+    required bool aadhaarVerified,
+    required bool policeVerified,
+    required String? photoPath,
+    required String? aadhaarPath,
+    required List<Map<String, dynamic>> services,
+  });
 }
 

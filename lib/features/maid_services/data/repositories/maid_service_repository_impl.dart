@@ -60,4 +60,86 @@ class MaidServiceRepositoryImpl implements MaidServiceRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> registerAgent({
+    required String companyName,
+    required String fullName,
+    required String phone,
+    required String email,
+    required String address,
+    required String agentType,
+    required String experienceYears,
+    required String helpersCount,
+    required List<String> servicesProvided,
+  }) async {
+    try {
+      await remoteDataSource.registerAgent(
+        companyName: companyName,
+        fullName: fullName,
+        phone: phone,
+        email: email,
+        address: address,
+        agentType: agentType,
+        experienceYears: experienceYears,
+        helpersCount: helpersCount,
+        servicesProvided: servicesProvided,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> registerMaid({
+    required String fullName,
+    required String gender,
+    required String age,
+    required String phone,
+    required String alternatePhone,
+    required String email,
+    required String dob,
+    required String maritalStatus,
+    required String religion,
+    required String? agentId,
+    required int? currentLocationId,
+    required List<int> preferredLocationIds,
+    required String expectedSalary,
+    required String workingHours,
+    required List<String> languages,
+    required bool aadhaarVerified,
+    required bool policeVerified,
+    required String? photoPath,
+    required String? aadhaarPath,
+    required List<Map<String, dynamic>> services,
+  }) async {
+    try {
+      await remoteDataSource.registerMaid(
+        fullName: fullName,
+        gender: gender,
+        age: age,
+        phone: phone,
+        alternatePhone: alternatePhone,
+        email: email,
+        dob: dob,
+        maritalStatus: maritalStatus,
+        religion: religion,
+        agentId: agentId,
+        currentLocationId: currentLocationId,
+        preferredLocationIds: preferredLocationIds,
+        expectedSalary: expectedSalary,
+        workingHours: workingHours,
+        languages: languages,
+        aadhaarVerified: aadhaarVerified,
+        policeVerified: policeVerified,
+        photoPath: photoPath,
+        aadhaarPath: aadhaarPath,
+        services: services,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

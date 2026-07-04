@@ -29,9 +29,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode:
-          ThemeMode.system, // Dynamically adapts to device brightness settings
+      themeMode: ThemeMode.light,
       home: const SplashScreen(),
     );
   }

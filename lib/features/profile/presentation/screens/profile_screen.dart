@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../resources/app_colors.dart';
 import '../../../maid_services/presentation/screens/in_app_webview_screen.dart';
 import 'help_support_screen.dart';
+import 'agent_registration_screen.dart';
+import 'maid_registration_screen.dart';
 
 /// Screen presenting support menu paths, FAQs, blogs, verification, and legal details.
 class SupportScreen extends StatelessWidget {
@@ -11,7 +13,9 @@ class SupportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Modern slate white/gray background
+      backgroundColor: const Color(
+        0xFFF8FAFC,
+      ), // Modern slate white/gray background
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +168,8 @@ class SupportScreen extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (_) => const InAppWebViewScreen(
                             title: 'Trust & Verification',
-                            url: 'https://www.trustedmaid.in/verification-process',
+                            url:
+                                'https://www.trustedmaid.in/verification-process',
                           ),
                         ),
                       );
@@ -184,6 +189,55 @@ class SupportScreen extends StatelessWidget {
                             title: 'Blogs & Articles',
                             url: 'https://www.trustedmaid.in/blogs',
                           ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Join Our Network Section
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'Join Our Network',
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  _buildListTile(
+                    icon: Icons.people_outline_rounded,
+                    title: 'Register as an Agent',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AgentRegistrationScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildListTile(
+                    icon: Icons.assignment_ind_outlined,
+                    title: 'Register as a Maid',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MaidRegistrationScreen(),
                         ),
                       );
                     },
@@ -290,11 +344,7 @@ class SupportScreen extends StatelessWidget {
                   color: iconColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 24,
-                ),
+                child: Icon(icon, color: iconColor, size: 24),
               ),
               const SizedBox(height: 14),
               Text(
