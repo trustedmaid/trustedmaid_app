@@ -9,6 +9,7 @@ import '../../features/maid_services/domain/usecases/search_locations_usecase.da
 import '../../features/maid_services/domain/usecases/submit_enquiry_usecase.dart';
 import '../../features/maid_services/domain/usecases/register_agent_usecase.dart';
 import '../../features/maid_services/domain/usecases/register_maid_usecase.dart';
+import '../../features/maid_services/domain/usecases/upload_public_file_usecase.dart';
 import '../../features/maid_services/presentation/bloc/location_search_bloc.dart';
 import '../../features/maid_services/presentation/bloc/maid_service_bloc.dart';
 
@@ -38,6 +39,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SubmitEnquiryUseCase(sl()));
   sl.registerLazySingleton(() => RegisterAgentUseCase(sl()));
   sl.registerLazySingleton(() => RegisterMaidUseCase(sl()));
+  sl.registerLazySingleton(() => UploadPublicFileUseCase(sl()));
 
   // Repositories
   sl.registerLazySingleton<MaidServiceRepository>(

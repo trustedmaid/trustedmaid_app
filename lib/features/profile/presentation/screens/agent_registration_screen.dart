@@ -1,9 +1,11 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/presentation/widgets/staggered_column.dart';
 import '../../../../resources/app_colors.dart';
 import '../../../maid_services/domain/usecases/register_agent_usecase.dart';
+import '../../../maid_services/domain/usecases/upload_public_file_usecase.dart';
 
 class AgentRegistrationScreen extends StatefulWidget {
   const AgentRegistrationScreen({super.key});
@@ -15,80 +17,142 @@ class AgentRegistrationScreen extends StatefulWidget {
 class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _companyNameController = TextEditingController();
   final _fullNameController = TextEditingController();
+  final _companyNameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _alternatePhoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
-  final _experienceController = TextEditingController();
+  final _notesController = TextEditingController();
 
-  String _selectedAgentType = 'agency'; // individual, agency, corporate
-  String _selectedHelpersCount = '10 - 50'; // 0 - 10, 10 - 50, 50 - 100, 100+
+  String _selectedAgentType = 'individual'; // individual, agency, corporate
 
-  final List<String> _availableServices = [
-    'House Maid',
-    'Home Cook',
-    'Baby Sitter',
-    'Elderly Care',
-    'Patient Care',
-    'Japa Maid',
-  ];
-  final List<String> _selectedServices = [];
-
+  String? _aadharFilePath;
+  String? _aadharFileName;
+  bool _isUploadingAadhar = false;
+  String? _aadharUrl;
   bool _isSubmitting = false;
 
   @override
   void dispose() {
-    _companyNameController.dispose();
     _fullNameController.dispose();
+    _companyNameController.dispose();
     _phoneController.dispose();
+    _alternatePhoneController.dispose();
     _emailController.dispose();
     _addressController.dispose();
-    _experienceController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
-  void _toggleService(String service) {
+  Future<void> _pickAadharFile() async {
+    FocusScope.of(context).unfocus();
+
     setState(() {
-      if (_selectedServices.contains(service)) {
-        _selectedServices.remove(service);
-      } else {
-        _selectedServices.add(service);
+      _isUploadingAadhar = true;
+    });
+
+    try {
+      final FilePickerResult? result = await FilePicker.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final fileName = result.files.single.name;
+        final filePath = result.files.single.path!;
+
+        if (!fileName.toLowerCase().endsWith('.pdf')) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select PDF files only.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          return;
+        }
+
+        setState(() {
+          _aadharFileName = fileName;
+          _aadharFilePath = filePath;
+        });
+
+        // Upload the file to get the URL
+        final uploadResult = await sl<UploadPublicFileUseCase>().call(filePath);
+        if (!mounted) return;
+        uploadResult.fold(
+          (failure) {
+            setState(() {
+              _aadharFilePath = null;
+              _aadharFileName = null;
+              _aadharUrl = null;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Upload failed: ${failure.message}'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          },
+          (url) {
+            setState(() {
+              _aadharUrl = url;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Aadhar Card PDF uploaded successfully!'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          },
+        );
       }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking file: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isUploadingAadhar = false;
+      });
+    }
+  }
+
+  void _deleteAadharFile() {
+    setState(() {
+      _aadharFilePath = null;
+      _aadharFileName = null;
+      _aadharUrl = null;
     });
   }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedServices.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select at least one service category.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _isSubmitting = true;
     });
 
     final params = RegisterAgentParams(
-      companyName: _companyNameController.text.trim(),
-      fullName: _fullNameController.text.trim(),
-      phone: _phoneController.text.trim(),
-      email: _emailController.text.trim(),
-      address: _addressController.text.trim(),
       agentType: _selectedAgentType,
-      experienceYears: _experienceController.text.trim().isEmpty ? '0' : _experienceController.text.trim(),
-      helpersCount: _selectedHelpersCount,
-      servicesProvided: _selectedServices,
+      fullName: _fullNameController.text.trim(),
+      companyName: _companyNameController.text.trim().isEmpty ? null : _companyNameController.text.trim(),
+      phone: _phoneController.text.trim(),
+      alternatePhone: _alternatePhoneController.text.trim().isEmpty ? null : _alternatePhoneController.text.trim(),
+      email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+      address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+      aadharUrl: _aadharUrl,
+      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
     );
 
     final result = await sl<RegisterAgentUseCase>().call(params);
 
+    if (!mounted) return;
     setState(() {
       _isSubmitting = false;
     });
@@ -170,11 +234,11 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
                       borderRadius: BorderRadius.circular(24),
                       onTap: () {
                         Navigator.pop(context); // Close dialog
-                        Navigator.pop(context); // Go back to Support screen
+                        Navigator.pop(context); // Go back
                       },
                       child: const Center(
                         child: Text(
-                          'Back to Support',
+                          'Done',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 14,
@@ -271,55 +335,51 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
                         height: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 24),
 
-                    // Agent Type Selector
-                    const Text(
-                      'Agent / Partnership Type',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        _buildTypeChip('agency', 'Agency / Agency Owner', Icons.business_rounded),
-                        const SizedBox(width: 10),
-                        _buildTypeChip('individual', 'Freelancer / Individual', Icons.person_rounded),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Inputs Card Section
-                    _buildInputField(
-                      controller: _companyNameController,
-                      hint: 'Agency / Business Name *',
-                      icon: Icons.store_rounded,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter business name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
+                    // Basic Info Section
+                    _buildSectionHeader('Basic Info'),
                     _buildInputField(
                       controller: _fullNameController,
-                      hint: 'Contact Person Name *',
-                      icon: Icons.badge_outlined,
+                      hint: 'Full Name (पूरा नाम) *',
+                      icon: Icons.person_outline_rounded,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Please enter contact person name';
+                          return 'Please enter full name';
                         }
                         return null;
                       },
                     ),
+
+                    const SizedBox(height: 12),
+                    _buildDropdownField(
+                      value: _selectedAgentType,
+                      items: const [
+                        DropdownMenuItem(value: 'individual', child: Text('individual')),
+                        DropdownMenuItem(value: 'agency', child: Text('agency')),
+                        DropdownMenuItem(value: 'corporate', child: Text('corporate')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedAgentType = value;
+                          });
+                        }
+                      },
+                      hint: 'Agent Type',
+                      icon: Icons.business_center_outlined,
+                    ),
                     const SizedBox(height: 12),
                     _buildInputField(
+                      controller: _companyNameController,
+                      hint: 'Company Name (optional)',
+                      icon: Icons.business_outlined,
+                    ),
+
+                    // Contact & Address Section
+                    _buildSectionHeader('Contact & Address'),
+                    _buildInputField(
                       controller: _phoneController,
-                      hint: 'WhatsApp / Phone Number *',
+                      hint: 'Phone (फ़ोन) *',
                       icon: Icons.phone_android_rounded,
                       keyboardType: TextInputType.phone,
                       validator: (value) {
@@ -334,101 +394,37 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
                     ),
                     const SizedBox(height: 12),
                     _buildInputField(
+                      controller: _alternatePhoneController,
+                      hint: 'Alternate Phone (वैकल्पिक फ़ोन)',
+                      icon: Icons.phone_callback_rounded,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInputField(
                       controller: _emailController,
-                      hint: 'Email Address',
+                      hint: 'Email (ईमेल)',
                       icon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 12),
                     _buildInputField(
-                      controller: _experienceController,
-                      hint: 'Years of Experience as Agent *',
-                      icon: Icons.timeline_rounded,
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter experience years';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildInputField(
                       controller: _addressController,
-                      hint: 'Office / Business Address *',
+                      hint: 'Office/Home Address',
                       icon: Icons.location_on_outlined,
                       maxLines: 2,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter address';
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 20),
 
-                    // Number of active helpers list
-                    const Text(
-                      'How many active helpers/maids are under your network?',
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _buildHelpersCountChip('0 - 10'),
-                        _buildHelpersCountChip('10 - 50'),
-                        _buildHelpersCountChip('50 - 100'),
-                        _buildHelpersCountChip('100+'),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
+                    // Attach Documents Section
+                    _buildSectionHeader('Attach Documents (PDF Only)'),
+                    _buildAadharPicker(),
 
-                    // Services Provided Checklist
-                    const Text(
-                      'Helper Services You Can Provide *',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _availableServices.map((service) {
-                        final isSelected = _selectedServices.contains(service);
-                        return FilterChip(
-                          label: Text(
-                            service,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? Colors.white : AppColors.secondary,
-                            ),
-                          ),
-                          selected: isSelected,
-                          onSelected: (_) => _toggleService(service),
-                          backgroundColor: Colors.white,
-                          selectedColor: AppColors.primary,
-                          checkmarkColor: Colors.white,
-                          elevation: 0,
-                          pressElevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: isSelected ? AppColors.primary : AppColors.line,
-                              width: 1.2,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                    // Additional Notes Section
+                    _buildSectionHeader('Additional Notes'),
+                    _buildInputField(
+                      controller: _notesController,
+                      hint: 'Internal Notes',
+                      icon: Icons.note_alt_outlined,
+                      maxLines: 3,
                     ),
 
                     const SizedBox(height: 36),
@@ -452,7 +448,7 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(26),
-                          onTap: _isSubmitting ? null : _submitForm,
+                          onTap: _isSubmitting || _isUploadingAadhar ? null : _submitForm,
                           child: Center(
                             child: _isSubmitting
                                 ? const SizedBox(
@@ -463,13 +459,20 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
                                       strokeWidth: 2.5,
                                     ),
                                   )
-                                : const Text(
-                                    'Submit Application',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Text(
+                                        'Register Now',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                                    ],
                                   ),
                           ),
                         ),
@@ -486,73 +489,195 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
     );
   }
 
-  Widget _buildTypeChip(String type, String label, IconData icon) {
-    final isSelected = _selectedAgentType == type;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedAgentType = type),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.brandSoft : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.line,
-              width: 1.5,
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24, bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+              letterSpacing: 1.2,
             ),
           ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? AppColors.primary : AppColors.darkTextSecondary,
-                size: 24,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? AppColors.primary : AppColors.darkTextSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+          const SizedBox(height: 6),
+          const Divider(color: AppColors.line, height: 1, thickness: 1),
+        ],
       ),
     );
   }
 
-  Widget _buildHelpersCountChip(String text) {
-    final isSelected = _selectedHelpersCount == text;
-    return ChoiceChip(
-      label: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.white : AppColors.secondary,
-        ),
+  Widget _buildDropdownField({
+    required String value,
+    required List<DropdownMenuItem<String>> items,
+    required void Function(String?) onChanged,
+    required String hint,
+    required IconData icon,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      selected: isSelected,
-      onSelected: (val) {
-        if (val) {
-          setState(() {
-            _selectedHelpersCount = text;
-          });
-        }
-      },
-      backgroundColor: Colors.white,
-      selectedColor: AppColors.primary,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isSelected ? AppColors.primary : AppColors.line,
-          width: 1.2,
+      child: DropdownButtonFormField<String>(
+        value: value,
+        items: items,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+          prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.line, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
+        style: const TextStyle(fontSize: 14, color: AppColors.secondary, fontWeight: FontWeight.w500),
       ),
+    );
+  }
+
+  Widget _buildAadharPicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Aadhar Card (PDF)',
+          style: TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.bold,
+            color: AppColors.secondary,
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (_aadharFilePath != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.line, width: 1.5),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.picture_as_pdf_rounded, color: Colors.red, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _aadharFileName ?? 'Selected File',
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.secondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _isUploadingAadhar ? 'Uploading...' : 'Uploaded successfully',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _isUploadingAadhar ? AppColors.primary : AppColors.success,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!_isUploadingAadhar)
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                    onPressed: _deleteAadharFile,
+                  ),
+              ],
+            ),
+          )
+        else
+          GestureDetector(
+            onTap: _isUploadingAadhar ? null : _pickAadharFile,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.line,
+                  width: 1.5,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.cloud_upload_outlined,
+                    color: AppColors.primary.withOpacity(0.6),
+                    size: 36,
+                  ),
+                  const SizedBox(height: 10),
+                  if (_isUploadingAadhar)
+                    const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                      ),
+                    )
+                  else ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.line, width: 1),
+                      ),
+                      child: const Text(
+                        'Browse',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'PDF Files only · Max 5MB',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -563,6 +688,7 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
+    bool readOnly = false,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -581,10 +707,14 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
         keyboardType: keyboardType,
         maxLines: maxLines,
         validator: validator,
+        readOnly: readOnly,
+        enabled: !readOnly,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
           prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
+          fillColor: readOnly ? Colors.grey[50] : Colors.white,
+          filled: true,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
@@ -597,6 +727,10 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.line, width: 1.5),
+          ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: AppColors.error, width: 1.5),
@@ -607,7 +741,11 @@ class _AgentRegistrationScreenState extends State<AgentRegistrationScreen> {
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-        style: const TextStyle(fontSize: 14, color: AppColors.secondary, fontWeight: FontWeight.w500),
+        style: TextStyle(
+          fontSize: 14,
+          color: readOnly ? Colors.grey[600] : AppColors.secondary,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

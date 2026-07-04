@@ -26,16 +26,19 @@ abstract class MaidServiceRepository {
 
   /// Registers a new agent.
   Future<Either<Failure, void>> registerAgent({
-    required String companyName,
-    required String fullName,
-    required String phone,
-    required String email,
-    required String address,
     required String agentType,
-    required String experienceYears,
-    required String helpersCount,
-    required List<String> servicesProvided,
+    required String fullName,
+    required String? companyName,
+    required String phone,
+    required String? alternatePhone,
+    required String? email,
+    required String? address,
+    required String? aadharUrl,
+    required String? notes,
   });
+
+  /// Uploads a public file for agents.
+  Future<Either<Failure, String>> uploadPublicFile(String filePath);
 
   /// Registers a new maid.
   Future<Either<Failure, void>> registerMaid({

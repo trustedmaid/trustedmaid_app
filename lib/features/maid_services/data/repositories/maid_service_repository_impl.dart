@@ -63,29 +63,39 @@ class MaidServiceRepositoryImpl implements MaidServiceRepository {
 
   @override
   Future<Either<Failure, void>> registerAgent({
-    required String companyName,
-    required String fullName,
-    required String phone,
-    required String email,
-    required String address,
     required String agentType,
-    required String experienceYears,
-    required String helpersCount,
-    required List<String> servicesProvided,
+    required String fullName,
+    required String? companyName,
+    required String phone,
+    required String? alternatePhone,
+    required String? email,
+    required String? address,
+    required String? aadharUrl,
+    required String? notes,
   }) async {
     try {
       await remoteDataSource.registerAgent(
-        companyName: companyName,
+        agentType: agentType,
         fullName: fullName,
+        companyName: companyName,
         phone: phone,
+        alternatePhone: alternatePhone,
         email: email,
         address: address,
-        agentType: agentType,
-        experienceYears: experienceYears,
-        helpersCount: helpersCount,
-        servicesProvided: servicesProvided,
+        aadharUrl: aadharUrl,
+        notes: notes,
       );
       return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> uploadPublicFile(String filePath) async {
+    try {
+      final url = await remoteDataSource.uploadPublicFile(filePath);
+      return Right(url);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

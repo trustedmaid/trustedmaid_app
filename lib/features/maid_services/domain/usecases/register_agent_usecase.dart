@@ -12,52 +12,52 @@ class RegisterAgentUseCase implements UseCase<void, RegisterAgentParams> {
   @override
   Future<Either<Failure, void>> call(RegisterAgentParams params) async {
     return await repository.registerAgent(
-      companyName: params.companyName,
+      agentType: params.agentType,
       fullName: params.fullName,
+      companyName: params.companyName,
       phone: params.phone,
+      alternatePhone: params.alternatePhone,
       email: params.email,
       address: params.address,
-      agentType: params.agentType,
-      experienceYears: params.experienceYears,
-      helpersCount: params.helpersCount,
-      servicesProvided: params.servicesProvided,
+      aadharUrl: params.aadharUrl,
+      notes: params.notes,
     );
   }
 }
 
 class RegisterAgentParams extends Equatable {
-  final String companyName;
-  final String fullName;
-  final String phone;
-  final String email;
-  final String address;
   final String agentType;
-  final String experienceYears;
-  final String helpersCount;
-  final List<String> servicesProvided;
+  final String fullName;
+  final String? companyName;
+  final String phone;
+  final String? alternatePhone;
+  final String? email;
+  final String? address;
+  final String? aadharUrl;
+  final String? notes;
 
   const RegisterAgentParams({
-    required this.companyName,
-    required this.fullName,
-    required this.phone,
-    required this.email,
-    required this.address,
     required this.agentType,
-    required this.experienceYears,
-    required this.helpersCount,
-    required this.servicesProvided,
+    required this.fullName,
+    this.companyName,
+    required this.phone,
+    this.alternatePhone,
+    this.email,
+    this.address,
+    this.aadharUrl,
+    this.notes,
   });
 
   @override
   List<Object?> get props => [
-        companyName,
+        agentType,
         fullName,
+        companyName,
         phone,
+        alternatePhone,
         email,
         address,
-        agentType,
-        experienceYears,
-        helpersCount,
-        servicesProvided,
+        aadharUrl,
+        notes,
       ];
 }

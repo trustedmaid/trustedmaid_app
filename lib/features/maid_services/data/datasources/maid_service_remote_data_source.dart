@@ -27,16 +27,19 @@ abstract class MaidServiceRemoteDataSource {
 
   /// Register a new agent.
   Future<void> registerAgent({
-    required String companyName,
-    required String fullName,
-    required String phone,
-    required String email,
-    required String address,
     required String agentType,
-    required String experienceYears,
-    required String helpersCount,
-    required List<String> servicesProvided,
+    required String fullName,
+    required String? companyName,
+    required String phone,
+    required String? alternatePhone,
+    required String? email,
+    required String? address,
+    required String? aadharUrl,
+    required String? notes,
   });
+
+  /// Upload a file for agent documents.
+  Future<String> uploadPublicFile(String filePath);
 
   /// Register a new maid.
   Future<void> registerMaid({
@@ -103,29 +106,61 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
 
   @override
   Future<void> registerAgent({
-    required String companyName,
-    required String fullName,
-    required String phone,
-    required String email,
-    required String address,
     required String agentType,
-    required String experienceYears,
-    required String helpersCount,
-    required List<String> servicesProvided,
+    required String fullName,
+    required String? companyName,
+    required String phone,
+    required String? alternatePhone,
+    required String? email,
+    required String? address,
+    required String? aadharUrl,
+    required String? notes,
   }) async {
     try {
       await client.post(
         'https://www.trustedmaid.in/api/public/agents',
         data: {
-          'company_name': companyName,
+          'agent_code': null,
+          'agent_type': agentType,
           'full_name': fullName,
+          'company_name': companyName,
           'phone': phone,
+          'alternate_phone': alternatePhone,
           'email': email,
           'address': address,
-          'agent_type': agentType,
-          'notes': 'Experience: $experienceYears years. Helpers count: $helpersCount. Services provided: ${servicesProvided.join(', ')}',
+          'aadhar_url': aadharUrl,
+          'pan_url': null,
+          'agreement_url': null,
+          'commission_type': 'percentage',
+          'default_commission_value': 40,
+          'status': 'inactive',
+          'notes': notes,
         },
       );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> uploadPublicFile(String filePath) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          filePath,
+          filename: filePath.split('/').last,
+        ),
+      });
+
+      final response = await client.post(
+        'https://www.trustedmaid.in/api/public/upload?type=agent&folder=aadhar',
+        data: formData,
+      );
+
+      if (response.data != null && response.data['url'] != null) {
+        return response.data['url'] as String;
+      }
+      throw Exception('Failed to get file URL from upload response');
     } catch (e) {
       rethrow;
     }

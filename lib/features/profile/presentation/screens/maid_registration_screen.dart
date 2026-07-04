@@ -188,6 +188,8 @@ class _MaidRegistrationScreenState extends State<MaidRegistrationScreen> {
   }
 
   Future<void> _pickFile(bool isAadhaar) async {
+    FocusScope.of(context).unfocus();
+
     setState(() {
       if (isAadhaar) {
         _isUploadingAadhaar = true;
