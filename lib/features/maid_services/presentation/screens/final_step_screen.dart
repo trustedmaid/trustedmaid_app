@@ -5,6 +5,7 @@ import '../../../../resources/app_colors.dart';
 import '../../../../utils/extensions.dart';
 import '../../domain/entities/location_entity.dart';
 import '../../domain/usecases/submit_enquiry_usecase.dart';
+import '../../domain/usecases/submit_partial_enquiry_usecase.dart';
 import 'in_app_webview_screen.dart';
 import 'salary_estimation_result_screen.dart';
 
@@ -31,12 +32,69 @@ class _FinalStepScreenState extends State<FinalStepScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   bool _isSubmitting = false;
+  String? _lastSubmittedPhone;
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneController.addListener(_onPhoneChanged);
+  }
 
   @override
   void dispose() {
+    _phoneController.removeListener(_onPhoneChanged);
     _nameController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  void _onPhoneChanged() {
+    final phone = _phoneController.text.trim();
+    if (RegExp(r'^[0-9]{10}$').hasMatch(phone) && phone != _lastSubmittedPhone) {
+      _lastSubmittedPhone = phone;
+
+      final service = widget.service;
+      final selectedShift = widget.selectedShift;
+      final selectedApartment = widget.selectedApartment;
+
+      final String workingHoursStr = '${selectedShift['title'].toLowerCase().replaceAll('hrs', 'hours')}';
+      final double localityMultiplier = _getLocalityMultiplier(widget.selectedLocation.displayName);
+      final double feeMultiplier = selectedApartment['feeMultiplier'] as double;
+      final int computedPrice = ((selectedShift['price'] as int) * localityMultiplier * feeMultiplier).round();
+      final int lowerBound = (computedPrice / 1000).floor() * 1000;
+      final int upperBound = lowerBound + 1000;
+      
+      String formatVal(int val) {
+        final valStr = val.toString();
+        if (valStr.length > 3) {
+          return '${valStr.substring(0, valStr.length - 3)},${valStr.substring(valStr.length - 3)}';
+        }
+        return valStr;
+      }
+
+      final String estimatedSalaryStr = '₹${formatVal(lowerBound)} - ₹${formatVal(upperBound)}';
+
+      final String messageBody = 'Salary Calculator Request:\n'
+          'Service: ${service['title']}\n'
+          'Location: ${widget.selectedLocation.displayName}\n'
+          'Shift/Hours: ${selectedShift['title']} (${selectedShift['badge']})\n'
+          'Home Size: ${selectedApartment['title'].split(' (')[0]}\n'
+          'Salary Estimated: $estimatedSalaryStr';
+
+      sl<SubmitPartialEnquiryUseCase>().call(
+        SubmitPartialEnquiryParams(
+          phone: phone,
+          fullName: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : null,
+          email: 'calculator-partial@trustedmaid.in',
+          service: service['title'] as String,
+          location: widget.selectedLocation.displayName,
+          locationId: widget.selectedLocation.id,
+          workingHours: workingHoursStr,
+          shiftType: 'hourly',
+          message: messageBody,
+        ),
+      );
+    }
   }
 
   double _getLocalityMultiplier(String locality) {

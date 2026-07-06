@@ -24,6 +24,19 @@ abstract class MaidServiceRepository {
     required String message,
   });
 
+  /// Submits partial customer enquiry (phone lead).
+  Future<Either<Failure, void>> submitPartialEnquiry({
+    required String phone,
+    String? fullName,
+    String? email,
+    String? service,
+    String? location,
+    int? locationId,
+    String? workingHours,
+    String? shiftType,
+    String? message,
+  });
+
   /// Registers a new agent.
   Future<Either<Failure, void>> registerAgent({
     required String agentType,

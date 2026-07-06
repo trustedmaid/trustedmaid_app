@@ -62,6 +62,36 @@ class MaidServiceRepositoryImpl implements MaidServiceRepository {
   }
 
   @override
+  Future<Either<Failure, void>> submitPartialEnquiry({
+    required String phone,
+    String? fullName,
+    String? email,
+    String? service,
+    String? location,
+    int? locationId,
+    String? workingHours,
+    String? shiftType,
+    String? message,
+  }) async {
+    try {
+      await remoteDataSource.submitPartialEnquiry(
+        phone: phone,
+        fullName: fullName,
+        email: email,
+        service: service,
+        location: location,
+        locationId: locationId,
+        workingHours: workingHours,
+        shiftType: shiftType,
+        message: message,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> registerAgent({
     required String agentType,
     required String fullName,

@@ -25,6 +25,19 @@ abstract class MaidServiceRemoteDataSource {
     required String message,
   });
 
+  /// Submits partial customer enquiry (phone lead).
+  Future<void> submitPartialEnquiry({
+    required String phone,
+    String? fullName,
+    String? email,
+    String? service,
+    String? location,
+    int? locationId,
+    String? workingHours,
+    String? shiftType,
+    String? message,
+  });
+
   /// Register a new agent.
   Future<void> registerAgent({
     required String agentType,
@@ -97,6 +110,40 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
           'working_hours': workingHours,
           'shift_type': shiftType,
           'message': message,
+          'platform': 'app',
+        },
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> submitPartialEnquiry({
+    required String phone,
+    String? fullName,
+    String? email,
+    String? service,
+    String? location,
+    int? locationId,
+    String? workingHours,
+    String? shiftType,
+    String? message,
+  }) async {
+    try {
+      await client.post(
+        'https://www.trustedmaid.in/api/customers/partial',
+        data: {
+          'phone': phone,
+          if (fullName != null) 'fullName': fullName,
+          if (email != null) 'email': email,
+          if (service != null) 'service': service,
+          if (location != null) 'location': location,
+          if (locationId != null) 'location_id': locationId,
+          if (workingHours != null) 'working_hours': workingHours,
+          if (shiftType != null) 'shift_type': shiftType,
+          if (message != null) 'message': message,
+          'platform': 'app',
         },
       );
     } catch (e) {
