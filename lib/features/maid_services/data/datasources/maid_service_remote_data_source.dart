@@ -99,7 +99,7 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
   }) async {
     try {
       await client.post(
-        'https://www.trustedmaid.in/api/customers',
+        'https://api.trustedmaid.in/customers',
         data: {
           'fullName': fullName,
           'phone': phone,
@@ -132,7 +132,7 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
   }) async {
     try {
       await client.post(
-        'https://www.trustedmaid.in/api/customers/partial',
+        'https://api.trustedmaid.in/customers/partial',
         data: {
           'phone': phone,
           if (fullName != null) 'fullName': fullName,
@@ -165,7 +165,7 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
   }) async {
     try {
       await client.post(
-        'https://www.trustedmaid.in/api/public/agents',
+        'https://api.trustedmaid.in/public/agents',
         data: {
           'agent_code': null,
           'agent_type': agentType,
@@ -200,7 +200,7 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
       });
 
       final response = await client.post(
-        'https://www.trustedmaid.in/api/public/upload?type=agent&folder=aadhar',
+        'https://api.trustedmaid.in/public/upload?type=agent&folder=aadhar',
         data: formData,
       );
 
@@ -275,7 +275,7 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
       final formData = FormData.fromMap(formDataMap);
 
       await client.post(
-        'https://www.trustedmaid.in/api/maids',
+        'https://api.trustedmaid.in/maids',
         data: formData,
       );
     } catch (e) {
@@ -287,7 +287,7 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
   Future<List<LocationModel>> searchLocations(String query) async {
     try {
       final response = await client.get(
-        'https://www.trustedmaid.in/api/locations',
+        'https://api.trustedmaid.in/locations',
         queryParameters: {'q': query},
       );
       if (response.data != null && response.data is List) {
