@@ -110,6 +110,7 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
           'working_hours': workingHours,
           'shift_type': shiftType,
           'message': message,
+          'source': 'app',
           'platform': 'app',
         },
       );
@@ -143,6 +144,7 @@ class MaidServiceRemoteDataSourceImpl implements MaidServiceRemoteDataSource {
           if (workingHours != null) 'working_hours': workingHours,
           if (shiftType != null) 'shift_type': shiftType,
           if (message != null) 'message': message,
+          'source': 'app',
           'platform': 'app',
         },
       );
