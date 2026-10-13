@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../resources/app_colors.dart';
+import '../../../maid_services/domain/usecases/submit_enquiry_usecase.dart';
 import 'booking_confirmation_screen.dart';
 
 /// Multi-step Booking Form Wizard implementing schedule configuration, address checks, and review summary.
@@ -33,6 +35,9 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
   String _selectedHomeType = '3 BHK';
   String _selectedMembers = '3–4';
   final TextEditingController _notesController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -43,6 +48,8 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
   @override
   void dispose() {
     _notesController.dispose();
+    _nameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -102,18 +109,27 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
-                onPressed: _handleStepSubmit,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _currentStep == 3 ? 'Confirm Request' : 'Continue',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(_currentStep == 3 ? Icons.check_rounded : Icons.arrow_forward_rounded, size: 18),
-                  ],
-                ),
+                onPressed: _isSubmitting ? null : _handleStepSubmit,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _currentStep == 3 ? 'Confirm Request' : 'Continue',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(_currentStep == 3 ? Icons.check_rounded : Icons.arrow_forward_rounded, size: 18),
+                        ],
+                      ),
               ),
             ),
           ),
@@ -160,21 +176,100 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
     }
   }
 
-  void _handleStepSubmit() {
+  void _handleStepSubmit() async {
+    if (_currentStep == 2) {
+      final name = _nameController.text.trim();
+      final phone = _phoneController.text.trim();
+      if (name.isEmpty || phone.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter your full name and phone number.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+      if (!RegExp(r'^[0-9]{10}$').hasMatch(phone)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter a valid 10-digit phone number.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+    }
+
     if (_currentStep < 3) {
       setState(() {
         _currentStep++;
       });
     } else {
-      // Step 3 submission -> Go to confirmation screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BookingConfirmationScreen(
-            serviceName: widget.serviceName,
-            planName: _selectedPlan,
+      final name = _nameController.text.trim();
+      final phone = _phoneController.text.trim();
+      if (name.isEmpty || phone.isEmpty) {
+        setState(() => _currentStep = 2);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter your name and phone number in the Address step.'),
+            backgroundColor: AppColors.error,
           ),
+        );
+        return;
+      }
+
+      setState(() => _isSubmitting = true);
+
+      final messageContent = 'Booking Request (Maid Booking Flow):\n'
+          'Service: ${widget.serviceName}\n'
+          'Plan: $_selectedPlan\n'
+          'Start Date: $_selectedStartDate\n'
+          'Time Slot: $_selectedTimeSlot\n'
+          'Languages: ${_selectedLanguages.join(', ')}\n'
+          'Home: Powai ($_selectedHomeType, $_selectedMembers members)\n'
+          'Monthly Estimated: ₹${widget.monthlyCharge}\n'
+          'Requirements / Notes: ${_notesController.text.trim().isEmpty ? "None" : _notesController.text.trim()}';
+
+      final result = await sl<SubmitEnquiryUseCase>().call(
+        SubmitEnquiryParams(
+          fullName: name,
+          phone: phone,
+          email: 'booking@trustedmaid.in',
+          service: widget.serviceName,
+          location: 'Powai, Mumbai',
+          locationId: 1,
+          workingHours: _selectedPlan,
+          shiftType: 'hourly',
+          message: messageContent,
         ),
+      );
+
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+
+      result.fold(
+        (failure) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to submit booking: ${failure.message}'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
+        (success) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BookingConfirmationScreen(
+                serviceName: widget.serviceName,
+                planName: _selectedPlan,
+              ),
+            ),
+          );
+        },
       );
     }
   }
@@ -413,6 +508,56 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
                 _buildSelectChip('1–2', _selectedMembers == '1–2', () => setState(() => _selectedMembers = '1–2')),
                 _buildSelectChip('3–4', _selectedMembers == '3–4', () => setState(() => _selectedMembers = '3–4')),
                 _buildSelectChip('5+', _selectedMembers == '5+', () => setState(() => _selectedMembers = '5+')),
+              ],
+            ),
+          ),
+
+          const Padding(
+            padding: EdgeInsets.fromLTRB(18, 16, 18, 7),
+            child: Text('Contact details', style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.line, width: 1.5),
+                  ),
+                  child: TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      hintText: 'Your Full Name *',
+                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+                      prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 20),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    ),
+                    style: const TextStyle(fontSize: 13, color: AppColors.secondary, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.line, width: 1.5),
+                  ),
+                  child: TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      hintText: 'Phone / WhatsApp Number *',
+                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+                      prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.primary, size: 20),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    ),
+                    style: const TextStyle(fontSize: 13, color: AppColors.secondary, fontWeight: FontWeight.w500),
+                  ),
+                ),
               ],
             ),
           ),
