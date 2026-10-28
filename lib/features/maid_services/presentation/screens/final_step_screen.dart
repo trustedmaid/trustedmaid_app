@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../resources/app_colors.dart';
 import '../../../../utils/extensions.dart';
+import '../../data/pricing_data.dart';
 import '../../domain/entities/location_entity.dart';
 import '../../domain/usecases/submit_enquiry_usecase.dart';
 import 'in_app_webview_screen.dart';
@@ -39,20 +40,7 @@ class _FinalStepScreenState extends State<FinalStepScreen> {
     super.dispose();
   }
 
-  double _getLocalityMultiplier(String locality) {
-    final lower = locality.toLowerCase();
-    if (lower.contains('bandra') ||
-        lower.contains('colaba') ||
-        lower.contains('worli') ||
-        lower.contains('juhu') ||
-        lower.contains('marine lines') ||
-        lower.contains('churchgate')) {
-      return 1.15; // 15% premium
-    } else if (lower.contains('thane') || lower.contains('kalyan')) {
-      return 0.85; // 15% discount
-    }
-    return 1.0;
-  }
+
 
   void _openWebView(String title, String url) {
     Navigator.push(
@@ -327,23 +315,15 @@ class _FinalStepScreenState extends State<FinalStepScreen> {
                                   _isSubmitting = true;
                                 });
 
-                                final double localityMultiplier = _getLocalityMultiplier(widget.selectedLocation.displayName);
                                 final double feeMultiplier = selectedApartment['feeMultiplier'] as double;
-                                final int computedPrice = ((selectedShift['price'] as int) * localityMultiplier * feeMultiplier).round();
 
-                                // Calculate estimated range (e.g. ₹4,000 - ₹5,000)
-                                final int lowerBound = (computedPrice / 1000).floor() * 1000;
-                                final int upperBound = lowerBound + 1000;
-
-                                String formatVal(int val) {
-                                  final valStr = val.toString();
-                                  if (valStr.length > 3) {
-                                    return '${valStr.substring(0, valStr.length - 3)},${valStr.substring(valStr.length - 3)}';
-                                  }
-                                  return valStr;
-                                }
-
-                                final String estimatedSalaryStr = '₹${formatVal(lowerBound)} - ₹${formatVal(upperBound)}';
+                                // Use per-service, tier-based pricing from the reference data
+                                final String estimatedSalaryStr = PricingData.computeEstimatedSalary(
+                                  serviceTitle: service['title'] as String,
+                                  shiftTitle: selectedShift['title'] as String,
+                                  locationName: widget.selectedLocation.displayName,
+                                  apartmentMultiplier: feeMultiplier,
+                                );
                                 final String workingHoursStr = '${selectedShift['title'].toLowerCase().replaceAll('hrs', 'hours')}';
 
                                 final String messageBody = 'Salary Calculator Request:\n'
